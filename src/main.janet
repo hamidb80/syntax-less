@@ -1,40 +1,42 @@
-(defn data-type [data]
-  (match (type data)
-    :nil      :nil
-    :boolean  :boolean
-    :number   :number
+(defn ast-data-type [data]
+  (let [t (type data)]
+    (match t
+      :nil      :nil
+      :boolean  :boolean
+      :number   :number
+      
+      :string   :string
+      :symbol   :symbol
+      :keyword  :keyword
 
-    :array    :vector
-    :tuple    :vector
+      :array    :vector
+      :tuple    :vector
+      
+      :table    :dict
+      :struct   :dict
+      
+      (error (string "it is impossible for a AST node to be a " t))
+    )))
 
-    :table    :dict
-    :struct   :dict
 
-    :string   :string
-    :buffer   :string
-   
-    :symbol   :symbol
-    :keyword  :keyword
+(defn visualize-impl [cfg code acc]
 
-    :function  :function
-    :cfunction :cfunction
-    :fiber     :fiber
-    ))
+  )
 
-(defn syntaxless/config 
-  "symbol -> fn(expr): HTML"
-  []
-  {})
-
-(defn syntaxless/visualize
-  "produces HTML output from Lisp code"
+(defn visualize ``
+  produces HTML output from Lisp code
+  - cfg:: fn-symbol -> fn(expr): HTML
+  ``
   [cfg code]
-
-  (match (data-type code)
-    :)
 
   (pp code))
 
+# USAGE -----------------------------------
 
-(syntaxless/visualize {} 
-  '(print "init"))
+(visualize {} 
+  '("init"))
+
+
+# (print "init") -> :vector
+# print          -> :symbol
+# "init"         -> :string
