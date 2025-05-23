@@ -2,7 +2,7 @@
 
 (defn- flat-string-impl (lst acc)
   (each s lst
-    (let [t (type/reduced s)]
+    (let [t (type s)]
       (match 
         :string  (buffer/push acc s)
         :tuple   (flat-string-impl s acc)
@@ -39,6 +39,7 @@
 # IMPL -----------------------------------------------------
 
 (defn visualize-impl [cfg code acc]
+  (pp code)
   )
 
 (defn visualize ``
@@ -55,7 +56,9 @@
 # USAGE -----------------------------------
 
 (visualize {} 
-  '("init"))
+  '(do 
+      (print "init")
+      ))
 
 
 # (print "init") -> :vector
