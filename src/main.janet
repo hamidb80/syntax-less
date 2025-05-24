@@ -4,9 +4,9 @@
   (each s lst
     (let [t (type s)]
       (match 
-        :string  (buffer/push acc s)
         :tuple   (flat-string-impl s acc)
-                (error (string `invalid type ` t))))))
+        :array   (flat-string-impl s acc)
+                 (buffer/push acc (string s))))))
 
 (defn  flat-string (& args) # args is nested list of string
   (let 
@@ -14,7 +14,7 @@
     (flat-string-impl args acc)
     acc))
 
-(defn ast-data-type [node]
+(defn  ast-data-type [node]
   (let [t (type node)]
     (match t
       :nil      :nil
@@ -33,29 +33,46 @@
       :table    :table
       :struct   :struct
       
-      (error (string "it is impossible for a AST node to be a " t))
+      (error (string "it is impossible for a AST node to be " t))
     )))
 
 # IMPL -----------------------------------------------------
 
-(defn visualize-impl [cfg code acc]
-  (pp code)
+(def push array/push)
+
+(def div-el (cls content)
+  [`<div ` `class="` cls `"`  `>` content `</div>`])
+
+(defn visualize-impl [cfg lookup node acc]
+  (def handle (fn [node-] (visualize-impl cfg lookup node- acc)))
+
+  (match (ast-data-type node)
+    :call     (let [callee (first node)
+                    f    (lookup callee)]
+                   (f cfg handle node acc))
+    :symbol   (push (div-el `ast-symbol` node))
+    :string   (push (div-el `ast-string` node))
+    )
   )
+
+(defn lookup/init [sym handle acc]
+  (match sym
+    (fn [cfg lookup node acc] (each node ))))
 
 (defn visualize ``
   produces HTML output from Lisp code
-  - cfg:: fn-symbol -> fn(expr): HTML
+  - lookup :: fn-symbol -> fn(cfg lookup node acc)
   ``
-  [cfg code]
+  [cfg lookup code]
 
   (let 
     [acc @[]] 
-    (visualize-impl cfg code acc)
+    (visualize-impl cfg lookup code acc)
     acc))
 
 # USAGE -----------------------------------
 
-(visualize {} 
+(visualize {} {}
   '(do 
       (print "init")
       ))
