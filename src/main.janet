@@ -1,5 +1,11 @@
 # UTILS ----------------------------------------------------
 
+(defn file/put (path content)
+  (def        f (file/open path :w))
+  (file/write f content)
+  (file/close f))
+
+
 (defn- flat-string-impl (lst acc)
   (each s lst
     (let [t (type s)]
@@ -74,11 +80,6 @@
     (flat-string acc)))
 
 # USAGE -----------------------------------
-
-(defn file/put (path content)
-  (def        f (file/open path :w))
-  (file/write f content)
-  (file/close f))
 
 (let 
   [c (visualize {} lookup '(print "init"))]
