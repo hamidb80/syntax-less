@@ -3,15 +3,15 @@
 (defn- flat-string-impl (lst acc)
   (each s lst
     (let [t (type s)]
-      (match 
+      (match t
         :tuple   (flat-string-impl s acc)
         :array   (flat-string-impl s acc)
-                 (buffer/push acc (string s))))))
+        (buffer/push acc (string s))))))
 
-(defn  flat-string (& args) # args is nested list of string
+(defn  flat-string (lst) # lst is nested list of string
   (let 
-    [acc @""] 
-    (flat-string-impl args acc)
+    [acc @""]
+    (flat-string-impl lst acc)
     acc))
 
 (defn  ast-data-type [node]
@@ -40,24 +40,27 @@
 
 (def push array/push)
 
-(def div-el (cls content)
+(defn div-el (cls content)
   [`<div ` `class="` cls `"`  `>` content `</div>`])
 
 (defn visualize-impl [cfg lookup node acc]
-  (def handle (fn [node-] (visualize-impl cfg lookup node- acc)))
-
   (match (ast-data-type node)
     :call     (let [callee (first node)
                     f    (lookup callee)]
-                   (f cfg handle node acc))
-    :symbol   (push (div-el `ast-symbol` node))
-    :string   (push (div-el `ast-string` node))
+                   (f visualize-impl cfg lookup node acc))
+    :symbol   (push acc (div-el `ast-symbol` node))
+    :string   (push acc (div-el `ast-string` node))
     )
   )
 
-(defn lookup/init [sym handle acc]
+(defn lookup [sym]
   (match sym
-    (fn [cfg lookup node acc] (each node ))))
+    (fn [handle cfg lookup node acc] 
+      (push acc (div-el "open-paren" "("))
+      (each child-node node 
+        (handle cfg lookup child-node acc))
+      (push acc (div-el "close-paren" ")"))
+    )))
 
 (defn visualize ``
   produces HTML output from Lisp code
@@ -68,15 +71,18 @@
   (let 
     [acc @[]] 
     (visualize-impl cfg lookup code acc)
-    acc))
+    (flat-string acc)))
 
 # USAGE -----------------------------------
 
-(visualize {} {}
-  '(do 
-      (print "init")
-      ))
+(defn file/put (path content)
+  (def        f (file/open path :w))
+  (file/write f content)
+  (file/close f))
 
+(let 
+  [c (visualize {} lookup '(print "init"))]
+  (file/put "./play.html" c))
 
 # (print "init") -> :vector
 # print          -> :symbol
